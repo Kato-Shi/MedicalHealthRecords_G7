@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { User, Patient } = require("../models");
 
 /**
 * Utility: Generate JWT token for a user
@@ -39,6 +39,16 @@ const register = async (req, res) => {
  try {
    const { username, email, password, role } = req.body;
 
+   const allowedRoles = ["admin", "manager", "staff", "doctor", "patient"];
+   const normalizedRole = role || "patient";
+
+   if (role && !allowedRoles.includes(role)) {
+     return res.status(400).json({
+       success: false,
+       message: "Invalid role specified",
+     });
+   }
+
    // Validate required fields
    if (!username || !email || !password) {
      return res.status(400).json({
@@ -53,7 +63,7 @@ const register = async (req, res) => {
      username,
      email,
      password,
-     role: role || "staff",
+     role: normalizedRole,
    });
 
    // Generate token for new user
@@ -181,10 +191,16 @@ const login = async (req, res) => {
 */
 const getProfile = async (req, res) => {
  try {
+   const patientProfile =
+     req.user.role === "patient"
+       ? await Patient.findOne({ where: { userId: req.user.id } })
+       : null;
+
    res.json({
      success: true,
      data: {
        user: req.user.toJSON(),
+       ...(patientProfile && { patientProfile: patientProfile.toJSON() }),
      },
    });
  } catch (error) {

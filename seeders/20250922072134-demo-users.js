@@ -49,6 +49,26 @@ module.exports = {
          createdAt: new Date(),
          updatedAt: new Date(),
        },
+       {
+         // Doctor user
+         id: uuidv4(),
+         username: "drsmith",
+         email: "drsmith@example.com",
+         password: hashedPassword,
+         role: "doctor",
+         createdAt: new Date(),
+         updatedAt: new Date(),
+       },
+       {
+         // Patient user
+         id: uuidv4(),
+         username: "patient",
+         email: "patient@example.com",
+         password: hashedPassword,
+         role: "patient",
+         createdAt: new Date(),
+         updatedAt: new Date(),
+       },
      ],
      {}, // Options object (kept empty here)
    );
