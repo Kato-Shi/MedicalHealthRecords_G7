@@ -23,6 +23,9 @@ require("dotenv").config(); // Loads environment variables from a .env file
 // Import route files
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
+const medicalRecordRoutes = require("./routes/medicalRecordRoutes");
 
 // Import database models (sequelize models are initialized here)
 const db = require("./models");
@@ -56,6 +59,15 @@ app.use("/api/auth", authRoutes);
 
 // Admin routes (e.g., user management, dashboard)
 app.use("/api/admin", adminRoutes);
+
+// Patient profile management
+app.use("/api/patients", patientRoutes);
+
+// Appointment scheduling and management
+app.use("/api/appointments", appointmentRoutes);
+
+// Clinical documentation endpoints
+app.use("/api/medical-records", medicalRecordRoutes);
 
 // Health check endpoint
 // Used to verify if the server is running and reachable
