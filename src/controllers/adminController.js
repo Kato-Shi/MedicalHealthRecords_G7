@@ -1,4 +1,5 @@
-const { User } = require("../models");
+const { User, Patient, Appointment, MedicalRecord, sequelize } = require("../models");
+const { Op } = require("sequelize");
 
 /**
 * Controller: Get Admin Dashboard Data
@@ -15,10 +16,32 @@ const getDashboard = async (req, res) => {
    // Count all users in the system
    const totalUsers = await User.count();
 
-   // Count users by role
-   const adminCount = await User.count({ where: { role: "admin" } });
-   const managerCount = await User.count({ where: { role: "manager" } });
-   const staffCount = await User.count({ where: { role: "staff" } });
+   // Aggregate counts per role to understand capacity mix
+   const roleBreakdownRaw = await User.findAll({
+     attributes: [
+       "role",
+       [sequelize.fn("COUNT", sequelize.col("role")), "count"],
+     ],
+     group: ["role"],
+     raw: true,
+   });
+
+   const roleBreakdown = roleBreakdownRaw.reduce((acc, item) => {
+     acc[item.role] = parseInt(item.count, 10);
+     return acc;
+   }, {});
+
+   const totalPatients = await Patient.count();
+   const scheduledAppointments = await Appointment.count({
+     where: {
+       status: "scheduled",
+       appointmentDate: {
+         [Op.gte]: new Date(),
+       },
+     },
+   });
+
+   const recordsDocumented = await MedicalRecord.count();
 
    // Send response with user statistics
    res.json({
@@ -27,9 +50,10 @@ const getDashboard = async (req, res) => {
      data: {
        statistics: {
          totalUsers,
-         adminCount,
-         managerCount,
-         staffCount,
+         roleBreakdown,
+         totalPatients,
+         scheduledAppointments,
+         recordsDocumented,
        },
      },
    });
@@ -58,6 +82,12 @@ const getAllUsers = async (req, res) => {
    // Fetch all users and order them by created date (descending)
    const users = await User.findAll({
      order: [["createdAt", "DESC"]],
+     include: [
+       {
+         model: Patient,
+         as: "patientProfile",
+       },
+     ],
    });
 
    // Send response with sanitized users (passwords removed in toJSON)
