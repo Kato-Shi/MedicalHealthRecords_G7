@@ -41,11 +41,17 @@ const requireRole = (allowedRoles) => {
 const requireAdmin = requireRole(["admin"]); // Only admins can access
 const requireManager = requireRole(["admin", "manager"]); // Admins and managers
 const requireStaff = requireRole(["admin", "manager", "staff"]); // Admins, managers, and staff
+const requireClinician = requireRole(["admin", "manager", "staff", "doctor"]); // Clinical staff
+const requireDoctor = requireRole(["doctor"]);
+const requirePatient = requireRole(["patient"]);
 
 // Export all middlewares so they can be used in route files
 module.exports = {
- requireRole,
- requireAdmin,
- requireManager,
- requireStaff,
+  requireRole,
+  requireAdmin,
+  requireManager,
+  requireStaff,
+  requireClinician,
+  requireDoctor,
+  requirePatient,
 };

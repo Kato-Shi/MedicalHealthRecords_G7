@@ -14,6 +14,8 @@ const {
    register,
    login,
    getProfile,
+   requestPasswordReset,
+   resetPassword,
 } = require("../controllers/authController"); // Controller functions for authentication
 const { authenticateToken } = require("../middleware/auth"); // Middleware for JWT authentication
 
@@ -34,12 +36,31 @@ router.post("/register", register);
 /**
 * @route   POST /api/auth/login
 * @desc    Login a user and return JWT token
-* @body    {string} email - User email
+* @body    {string} email - User email (optional when username provided)
+* @body    {string} username - User username (optional when email provided)
 * @body    {string} password - User password
 * @returns {string} token - JWT token for authenticated requests
 * @access  Public (no authentication required)
 */
 router.post("/login", login);
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Request a password reset link
+ * @body    {string} email - User email (optional if username provided)
+ * @body    {string} username - User username (optional if email provided)
+ * @access  Public
+ */
+router.post("/forgot-password", requestPasswordReset);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password using a valid token
+ * @body    {string} token - Reset token sent to the user
+ * @body    {string} password - The new password
+ * @access  Public
+ */
+router.post("/reset-password", resetPassword);
 
 /**
 * @route   GET /api/auth/profile
