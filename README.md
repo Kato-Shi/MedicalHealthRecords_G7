@@ -78,10 +78,11 @@ visibility across a clinic or hospital team.
    ```bash
    cd frontend
    npm install
-   PORT=3001 npm run dev
+   npm run dev
    ```
 
-   The app will start on [http://localhost:3001](http://localhost:3001). Create
+   The app will start on [http://localhost:3001](http://localhost:3001) because
+   the development script pins the Next.js server to port `3001`. Create
    `frontend/.env.local` with the following values so the development server
    proxies `/api/*` calls to the Express backend:
 
