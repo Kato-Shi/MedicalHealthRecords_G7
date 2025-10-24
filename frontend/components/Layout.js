@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
-export default function Layout({ children, title }) {
+export default function Layout({ children, title, contentClassName }) {
   const router = useRouter();
   const { user, logout } = useAuth();
 
@@ -65,7 +65,11 @@ export default function Layout({ children, title }) {
             {title}
           </h1>
         ) : null}
-        <div className="w-full max-w-3xl rounded-2xl bg-white/95 p-8 shadow-2xl shadow-blue-100 ring-1 ring-slate-200 backdrop-blur">
+        <div
+          className={`w-full rounded-2xl bg-white/95 p-8 shadow-2xl shadow-blue-100 ring-1 ring-slate-200 backdrop-blur ${
+            contentClassName || "max-w-3xl"
+          }`}
+        >
           {children}
         </div>
       </main>
