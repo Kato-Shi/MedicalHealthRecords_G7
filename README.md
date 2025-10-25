@@ -104,7 +104,10 @@ Express API as a serverless function under `/api`.
    included `vercel.json`, you can deploy the entire repository as a single
    project. Vercel will:
    - Install dependencies in the root directory for the Express backend and
-     package the handler in `api/index.js` using the `@vercel/node` runtime.
+     package the handler in `api/index.js` using the `@vercel/node` runtime. The
+     serverless build reads its dependencies from `api/package.json`, so keep
+     the versions in that file in sync with the root `package.json` whenever you
+     add or upgrade backend libraries.
    - Install dependencies in `frontend/` and build the Next.js application using
      the `@vercel/next` runtime. The routing rules send every non-API request to
      the generated Next.js assets.
