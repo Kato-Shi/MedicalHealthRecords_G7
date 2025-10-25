@@ -46,7 +46,7 @@ visibility across a clinic or hospital team.
    PORT=3000
    JWT_SECRET=replace-with-secure-secret
    JWT_EXPIRES_IN=7d
-   FRONTEND_URL=http://localhost:5173
+   FRONTEND_URL=http://localhost:3001
    DB_HOST=localhost
    DB_PORT=6543
    DB_NAME=medical_records
@@ -93,6 +93,48 @@ visibility across a clinic or hospital team.
 
    Styling is implemented with Tailwind CSS, so the UI components rely on
    utility classes defined directly within the Next.js pages and components.
+
+## Deploying on Vercel
+
+The repository ships with a `vercel.json` configuration so the platform can build
+the Next.js frontend (located in the `frontend/` directory) and expose the
+Express API as a serverless function under `/api`.
+
+1. **Create two Vercel projects or a single monorepo project** – When using the
+   included `vercel.json`, you can deploy the entire repository as a single
+   project. Vercel will:
+   - Install dependencies in the root directory for the Express backend and
+     package the handler in `api/index.js` using the `@vercel/node` runtime.
+   - Install dependencies in `frontend/` and build the Next.js application using
+     the `@vercel/next` runtime. The routing rules send every non-API request to
+     the generated Next.js assets.
+
+2. **Configure environment variables in the Vercel dashboard** – Add the same
+   backend variables you use locally (`DB_HOST`, `DB_PORT`, `DB_NAME`,
+   `DB_USER`, `DB_PASS`, `JWT_SECRET`, `JWT_EXPIRES_IN`). Set `FRONTEND_URL` to
+   your deployed domain (for example, `https://your-project.vercel.app`) so CORS
+   allows browser traffic. For the frontend, set:
+   - `NEXT_PUBLIC_API_BASE_URL=/api`
+   - *(Optional)* `NEXT_PUBLIC_BACKEND_ORIGIN` **only** if your API lives on a
+     different host. When the variable is absent, the Next.js config detects the
+     Vercel environment and allows requests to resolve to the colocated
+     serverless API automatically.
+
+3. **Provision the database before deploying** – Vercel does not run migrations
+   automatically. Ensure your PostgreSQL instance (Supabase, Neon, RDS, etc.) is
+   reachable from the platform and execute `npm run db:migrate` followed by
+   `npm run db:seed` from a local machine or CI pipeline prior to going live.
+
+4. **Deploy** – Trigger a deployment (`vercel` CLI or Git integration). Vercel
+   will build the frontend and package the backend handler. Once complete, your
+   users can visit `/login`, `/register`, and `/dashboard`, while all API calls
+   route through the same domain under `/api/*`.
+
+5. **Verify with the health check** – After deployment, open
+   `https://your-project.vercel.app/api/health` to confirm the serverless
+   function can reach the database. If the request fails, inspect the deployment
+   logs for database connection errors (the `api/index.js` handler logs startup
+   status for each cold start).
 
 ## API Overview
 
