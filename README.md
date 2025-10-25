@@ -103,8 +103,12 @@ Express API as a serverless function under `/api`.
 1. **Create two Vercel projects or a single monorepo project** – When using the
    included `vercel.json`, you can deploy the entire repository as a single
    project. Vercel will:
-   - Install dependencies in the root directory for the Express backend and
-     package the handler in `api/index.js` using the `@vercel/node` runtime. The
+   - Run the `installCommand` defined in `vercel.json`, which installs
+     dependencies for the root backend, the Next.js frontend, **and** the
+     serverless API (`npm install --prefix api`). This ensures modules such as
+     `express`, `pg`, and `sequelize` are available when the serverless handler
+     executes in production.
+   - Package the handler in `api/index.js` using the `@vercel/node` runtime. The
      serverless build reads its dependencies from `api/package.json`, so keep
      the versions in that file in sync with the root `package.json` whenever you
      add or upgrade backend libraries.
