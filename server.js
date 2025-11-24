@@ -13,18 +13,50 @@
 
 const app = require("./src/app"); // Import the Express app
 const db = require("./src/models"); // Import Sequelize models and database instance
+const { DataTypes } = require("sequelize");
 
 // Set server port (from .env or default to 3000)
 const PORT = process.env.PORT || 3000;
+
+/**
+ * Ensures name fields exist on the Users table even if the migration has not
+ * been run on the current database. This prevents login/registration failures
+ * caused by a missing "firstName"/"lastName" column when older schemas are in
+ * use (as seen in the Supabase screenshot).
+ */
+const ensureUserNameColumns = async () => {
+  const queryInterface = db.sequelize.getQueryInterface();
+  const table = await queryInterface.describeTable("Users");
+
+  const addColumnIfMissing = async (column, definition) => {
+    if (!table[column]) {
+      await queryInterface.addColumn("Users", column, definition);
+      console.log(`ℹ️ Added missing Users.${column} column`);
+    }
+  };
+
+  await addColumnIfMissing("firstName", {
+    type: DataTypes.STRING,
+    allowNull: true,
+  });
+
+  await addColumnIfMissing("lastName", {
+    type: DataTypes.STRING,
+    allowNull: true,
+  });
+};
 
 /**
 * Starts the Express server and connects to the database.
 */
 const startServer = async () => {
  try {
-   // ✅ Test database connection
-   await db.sequelize.authenticate();
-   console.log("✅ Database connection established successfully.");
+  // ✅ Test database connection
+  await db.sequelize.authenticate();
+  console.log("✅ Database connection established successfully.");
+
+  // ✅ Backfill missing name columns if migrations have not run
+  await ensureUserNameColumns();
 
    // ✅ Sync database models in development only
    // "sync()" automatically creates/updates tables based on models

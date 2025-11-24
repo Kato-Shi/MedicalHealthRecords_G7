@@ -64,6 +64,11 @@ visibility across a clinic or hospital team.
    The seeders provision demo users (admin, manager, staff, doctor, patient) and
    sample clinical data so you can interact with the API immediately.
 
+   **If you see errors about missing `firstName`/`lastName` columns on `Users`:**
+   this means the name-field migration has not run on your database. Restarting
+   the server will now auto-create those columns if they are absent, or you can
+   rerun `npm run db:migrate` to apply the migration manually.
+
 4. **Start the development server**
 
    ```bash
