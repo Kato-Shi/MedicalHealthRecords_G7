@@ -91,16 +91,12 @@ export default function DashboardPage() {
     fetchAdminInsights();
   }, [token, user?.role]);
 
-  if (!token) {
-    return null;
-  }
+  const isAdmin = user?.role === "admin";
+  const isStaff = user?.role === "staff";
 
   const fullName = profile?.patientProfile
     ? `${profile.patientProfile.firstName} ${profile.patientProfile.lastName}`.trim()
     : user?.username;
-
-  const isAdmin = user?.role === "admin";
-  const isStaff = user?.role === "staff";
 
   const roleBreakdownEntries = adminStatistics?.roleBreakdown
     ? Object.entries(adminStatistics.roleBreakdown).sort((a, b) => b[1] - a[1])
@@ -155,6 +151,10 @@ export default function DashboardPage() {
 
     fetchStaffOverview();
   }, [token, isStaff]);
+
+  if (!token) {
+    return null;
+  }
 
   const parseDate = (value) => {
     if (!value) return null;
