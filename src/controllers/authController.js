@@ -40,7 +40,7 @@ const generateToken = (user) => {
 */
 const register = async (req, res) => {
  try {
-   const { username, email, password, role } = req.body;
+   const { username, email, password, role, firstName, lastName } = req.body;
 
    const allowedRoles = ["admin", "manager", "staff", "doctor", "patient"];
    const normalizedRole = role || "patient";
@@ -53,10 +53,10 @@ const register = async (req, res) => {
    }
 
    // Validate required fields
-   if (!username || !email || !password) {
+   if (!username || !email || !password || !firstName || !lastName) {
      return res.status(400).json({
        success: false,
-       message: "Username, email, and password are required",
+       message: "Username, email, first name, last name, and password are required",
      });
    }
 
@@ -64,6 +64,8 @@ const register = async (req, res) => {
    // Role defaults to "staff" if not provided
    const user = await User.create({
      username,
+     firstName,
+     lastName,
      email,
      password,
      role: normalizedRole,

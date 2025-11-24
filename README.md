@@ -153,6 +153,10 @@ Express API as a serverless function under `/api`.
 | Appointments    | `/api/appointments`     | CRUD for visit scheduling, status tracking, and clinician pairing.|
 | Medical Records | `/api/medical-records`  | CRUD for encounter documentation, diagnoses, and treatment plans. |
 
+**Registration payload**
+
+When calling `POST /api/auth/register`, provide `firstName`, `lastName`, `username`, `email`, and `password`. The backend stores names separately from the username so they can be rendered on dashboards alongside patient profile details.
+
 ### Roles & Permissions
 
 - **Admin / Manager / Staff**: Full access to manage users, patients,

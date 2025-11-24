@@ -20,52 +20,62 @@ module.exports = {
      "Users", // Target table name
      [
        {
-         // Admin user
-         id: uuidv4(), // Generate unique UUID
-         username: "admin", // Admin username
-         email: "admin@example.com", // Admin email
-         password: hashedPassword, // Store hashed password instead of plain text
-         role: "admin", // Role for authorization
+        // Admin user
+        id: uuidv4(), // Generate unique UUID
+        username: "admin", // Admin username
+        firstName: "System",
+        lastName: "Admin",
+        email: "admin@example.com", // Admin email
+        password: hashedPassword, // Store hashed password instead of plain text
+        role: "admin", // Role for authorization
          createdAt: new Date(), // Timestamps required by Sequelize
          updatedAt: new Date(),
        },
        {
          // Manager user
-         id: uuidv4(),
-         username: "manager",
-         email: "manager@example.com",
-         password: hashedPassword,
-         role: "manager",
+        id: uuidv4(),
+        username: "manager",
+        firstName: "Morgan",
+        lastName: "Manager",
+        email: "manager@example.com",
+        password: hashedPassword,
+        role: "manager",
          createdAt: new Date(),
          updatedAt: new Date(),
        },
        {
          // Staff user
-         id: uuidv4(),
-         username: "staff",
-         email: "staff@example.com",
-         password: hashedPassword,
-         role: "staff",
+        id: uuidv4(),
+        username: "staff",
+        firstName: "Sally",
+        lastName: "Staff",
+        email: "staff@example.com",
+        password: hashedPassword,
+        role: "staff",
          createdAt: new Date(),
          updatedAt: new Date(),
        },
        {
          // Doctor user
-         id: uuidv4(),
-         username: "drsmith",
-         email: "drsmith@example.com",
-         password: hashedPassword,
-         role: "doctor",
+        id: uuidv4(),
+        username: "drsmith",
+        firstName: "Dana",
+        lastName: "Smith",
+        email: "drsmith@example.com",
+        password: hashedPassword,
+        role: "doctor",
          createdAt: new Date(),
          updatedAt: new Date(),
        },
        {
          // Patient user
-         id: uuidv4(),
-         username: "patient",
-         email: "patient@example.com",
-         password: hashedPassword,
-         role: "patient",
+        id: uuidv4(),
+        username: "patient",
+        firstName: "Pat",
+        lastName: "Example",
+        email: "patient@example.com",
+        password: hashedPassword,
+        role: "patient",
          createdAt: new Date(),
          updatedAt: new Date(),
        },

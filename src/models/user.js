@@ -73,6 +73,26 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
+            firstName: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                validate: {
+                    len: {
+                        args: [1, 100],
+                        msg: "First name must be between 1 and 100 characters.",
+                    },
+                },
+            },
+            lastName: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                validate: {
+                    len: {
+                        args: [1, 100],
+                        msg: "Last name must be between 1 and 100 characters.",
+                    },
+                },
+            },
             email: {
                 type: DataTypes.STRING,
                 allowNull: false,

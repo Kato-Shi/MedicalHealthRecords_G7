@@ -9,6 +9,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [formValues, setFormValues] = useState({
+    firstName: "",
+    lastName: "",
     username: "",
     email: "",
     password: "",
@@ -47,6 +49,36 @@ export default function RegisterPage() {
   return (
     <Layout title="Create account">
       <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700" htmlFor="firstName">
+              First name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              value={formValues.firstName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-slate-700" htmlFor="lastName">
+              Last name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              value={formValues.lastName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-slate-700" htmlFor="username">
             Username
