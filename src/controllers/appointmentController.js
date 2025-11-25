@@ -9,7 +9,7 @@ const ALLOWED_STATUSES = [
   "completed",
   "cancelled",
 ];
-const STAFF_ROLES = ["admin", "manager", "staff"];
+const STAFF_ROLES = ["manager", "staff"];
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
 const APPOINTMENT_INCLUDE = [
@@ -59,7 +59,17 @@ const resolvePatientForUser = async (user) => {
     return null;
   }
 
-  return Patient.findOne({ where: { userId: user.id } });
+  const existing = await Patient.findOne({ where: { userId: user.id } });
+  if (existing) {
+    return existing;
+  }
+
+  return Patient.create({
+    userId: user.id,
+    firstName: user.firstName || "Patient",
+    lastName: user.lastName || "User",
+    email: user.email,
+  });
 };
 
 const ensureSchedulingWindow = async ({
@@ -111,6 +121,13 @@ const ensureSchedulingWindow = async ({
 
 const createAppointment = async (req, res) => {
   try {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({
+        success: false,
+        message: "Only patients can create appointments",
+      });
+    }
+
     const {
       patientId,
       doctorId,
@@ -163,10 +180,7 @@ const createAppointment = async (req, res) => {
       });
     }
 
-    let resolvedDoctorId = doctorId;
-    if (req.user.role === "doctor" && !doctorId) {
-      resolvedDoctorId = req.user.id;
-    }
+    const resolvedDoctorId = doctorId;
 
     if (!resolvedDoctorId) {
       return res.status(400).json({
@@ -372,16 +386,27 @@ const updateAppointment = async (req, res) => {
     }
 
     const patientUserId = appointment.patient?.user?.id;
-    const canManageAll = STAFF_ROLES.includes(req.user.role);
-    const isDoctor = req.user.role === "doctor" && appointment.doctorId === req.user.id;
-    const isPatient = req.user.role === "patient" && patientUserId === req.user.id;
 
-    if (!canManageAll && !isDoctor && !isPatient) {
+    if (req.user.role !== "patient") {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this appointment",
+        message: "Only patients can update appointments",
       });
     }
+
+    if (patientUserId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Patients can only manage their own appointments",
+      });
+    }
+
+    const allowedFields = new Set(["appointmentDate", "reason", "notes", "status", "location"]);
+    Object.keys(updates).forEach((key) => {
+      if (!allowedFields.has(key)) {
+        delete updates[key];
+      }
+    });
 
     if (updates.status && !ALLOWED_STATUSES.includes(updates.status)) {
       return res.status(400).json({
@@ -390,58 +415,27 @@ const updateAppointment = async (req, res) => {
       });
     }
 
-    if (!canManageAll) {
-      const allowedFields = new Set(["appointmentDate", "reason", "notes", "status"]);
-
-      Object.keys(updates).forEach((key) => {
-        if (!allowedFields.has(key)) {
-          delete updates[key];
-        }
-      });
-    }
-
-    if (updates.patientId && canManageAll) {
-      const patient = await Patient.findByPk(updates.patientId);
-      if (!patient) {
-        return res.status(404).json({
+    const isCancellation = updates.status === "cancelled";
+    if (!isCancellation) {
+      if (appointment.status !== "reschedule_requested") {
+        return res.status(400).json({
           success: false,
-          message: "Patient not found",
+          message: "Appointment must be marked for reschedule before changes",
         });
       }
-    } else {
-      delete updates.patientId;
-    }
 
-    if (updates.doctorId) {
-      try {
-        await ensureDoctor(updates.doctorId);
-      } catch (error) {
-        if (error.message === "DOCTOR_NOT_FOUND") {
-          return res.status(404).json({
-            success: false,
-            message: "Doctor not found",
-          });
-        }
-
-        if (error.message === "INVALID_DOCTOR_ROLE") {
-          return res.status(400).json({
-            success: false,
-            message: "Assigned doctor must have the doctor role",
-          });
-        }
+      if (!updates.appointmentDate) {
+        return res.status(400).json({
+          success: false,
+          message: "Provide a new appointment date to reschedule",
+        });
       }
 
-      if (!canManageAll && !isDoctor) {
-        delete updates.doctorId;
-      }
-    }
-
-    if (updates.appointmentDate) {
       try {
         await ensureSchedulingWindow({
           appointmentDate: updates.appointmentDate,
-          patientId: updates.patientId || appointment.patientId,
-          doctorId: updates.doctorId || appointment.doctorId,
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
           excludeAppointmentId: appointment.id,
         });
       } catch (error) {
@@ -468,6 +462,8 @@ const updateAppointment = async (req, res) => {
 
         throw error;
       }
+
+      updates.status = updates.status || "scheduled";
     }
 
     await appointment.update(updates);
@@ -514,14 +510,11 @@ const deleteAppointment = async (req, res) => {
     }
 
     const patientUserId = appointment.patient?.user?.id;
-    const canManageAll = STAFF_ROLES.includes(req.user.role);
-    const isDoctor = req.user.role === "doctor" && appointment.doctorId === req.user.id;
-    const isPatient = req.user.role === "patient" && patientUserId === req.user.id;
 
-    if (!canManageAll && !isDoctor && !isPatient) {
+    if (req.user.role !== "patient" || patientUserId !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to delete this appointment",
+        message: "Only the patient can cancel this appointment",
       });
     }
 

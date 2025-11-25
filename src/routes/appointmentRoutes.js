@@ -13,12 +13,13 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-const appointmentAccessRoles = ["admin", "manager", "staff", "doctor", "patient"];
+const appointmentViewRoles = ["manager", "staff", "doctor", "patient"];
+const appointmentPatientOnly = ["patient"];
 
-router.post("/", requireRole(appointmentAccessRoles), createAppointment);
-router.get("/", requireRole(appointmentAccessRoles), getAppointments);
-router.get("/:appointmentId", requireRole(appointmentAccessRoles), getAppointmentById);
-router.put("/:appointmentId", requireRole(appointmentAccessRoles), updateAppointment);
-router.delete("/:appointmentId", requireRole(appointmentAccessRoles), deleteAppointment);
+router.post("/", requireRole(appointmentPatientOnly), createAppointment);
+router.get("/", requireRole(appointmentViewRoles), getAppointments);
+router.get("/:appointmentId", requireRole(appointmentViewRoles), getAppointmentById);
+router.put("/:appointmentId", requireRole(appointmentPatientOnly), updateAppointment);
+router.delete("/:appointmentId", requireRole(appointmentPatientOnly), deleteAppointment);
 
 module.exports = router;

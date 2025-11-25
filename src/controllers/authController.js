@@ -60,19 +60,28 @@ const register = async (req, res) => {
      });
    }
 
-   // Create new user in database
-   // Role defaults to "staff" if not provided
-   const user = await User.create({
-     username,
-     firstName,
-     lastName,
-     email,
-     password,
-     role: normalizedRole,
-   });
+  // Create new user in database
+  // Role defaults to "staff" if not provided
+  const user = await User.create({
+    username,
+    firstName,
+    lastName,
+    email,
+    password,
+    role: normalizedRole,
+  });
 
-   // Generate token for new user
-   const token = generateToken(user);
+  if (normalizedRole === "patient") {
+    await Patient.create({
+      userId: user.id,
+      firstName,
+      lastName,
+      email,
+    });
+  }
+
+  // Generate token for new user
+  const token = generateToken(user);
 
    res.status(201).json({
      success: true,

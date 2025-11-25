@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-const clinicalRoles = ["admin", "manager", "staff", "doctor"];
+const clinicalRoles = ["manager", "doctor"];
 const recordReadRoles = [...clinicalRoles, "patient"];
 
 router.post("/", requireRole(clinicalRoles), createMedicalRecord);

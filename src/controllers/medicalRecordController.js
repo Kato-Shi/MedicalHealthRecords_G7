@@ -1,7 +1,7 @@
 const { MedicalRecord, Patient, User } = require("../models");
 
-const STAFF_ROLES = ["admin", "manager", "staff"];
-const CLINICAL_ROLES = ["admin", "manager", "staff", "doctor"];
+const STAFF_ROLES = ["manager"];
+const CLINICAL_ROLES = ["manager", "doctor"];
 
 const MEDICAL_RECORD_INCLUDE = [
   {
@@ -63,7 +63,7 @@ const createMedicalRecord = async (req, res) => {
     if (!CLINICAL_ROLES.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: "Only clinical staff can create medical records",
+        message: "Only managers or doctors can create medical records",
       });
     }
 
@@ -185,11 +185,13 @@ const getMedicalRecords = async (req, res) => {
     const where = {};
 
     if (req.user.role === "patient") {
-      const patientProfile = await Patient.findOne({ where: { userId: req.user.id } });
+      let patientProfile = await Patient.findOne({ where: { userId: req.user.id } });
       if (!patientProfile) {
-        return res.status(404).json({
-          success: false,
-          message: "Patient profile not found",
+        patientProfile = await Patient.create({
+          userId: req.user.id,
+          firstName: req.user.firstName || "Patient",
+          lastName: req.user.lastName || "User",
+          email: req.user.email,
         });
       }
 
