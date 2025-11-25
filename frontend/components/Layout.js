@@ -31,9 +31,28 @@ export default function Layout({ children, title, contentClassName }) {
           <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
             {user ? (
               <>
-                <span className="hidden text-slate-500 sm:inline">
-                  Signed in as <span className="font-semibold text-slate-700">{user.username}</span>
-                </span>
+                <div className="hidden items-center gap-3 rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 sm:inline-flex">
+                  <span className="rounded-full bg-white px-3 py-1 text-slate-900 shadow-sm">{user.role}</span>
+                  <span className="text-slate-600">{user.username}</span>
+                </div>
+                <Link
+                  href="/dashboard"
+                  className="rounded-full px-3 py-2 transition hover:bg-blue-50 hover:text-blue-700"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/appointments"
+                  className="rounded-full px-3 py-2 transition hover:bg-blue-50 hover:text-blue-700"
+                >
+                  Appointments
+                </Link>
+                <Link
+                  href="/medical-records"
+                  className="rounded-full px-3 py-2 transition hover:bg-blue-50 hover:text-blue-700"
+                >
+                  Records
+                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}

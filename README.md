@@ -218,6 +218,11 @@ either an email or a username along with the password when logging in.
   present.
 - **Styling**: Tailwind CSS provides utility-first styling across pages, enabling rapid iteration on layouts and future components.
 
+### Appointments & records in the UI
+
+- **Appointments page** – Book visits (patients, doctors, staff), pick a doctor from the directory, and review upcoming and past appointments with quick reschedule/cancel controls and a calendar export link for the next visit.
+- **Medical records page** – Patients can review their history; clinicians can create new records with patient/doctor assignment, visit dates, diagnoses, and treatment plans, then browse the resulting log in chronological order.
+
 ### Password reset flow
 
 The password recovery feature is split across two API endpoints and a pair of Next.js
