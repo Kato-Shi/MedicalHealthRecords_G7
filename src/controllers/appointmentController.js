@@ -1,6 +1,13 @@
 const { Appointment, Patient, User } = require("../models");
 
-const ALLOWED_STATUSES = ["scheduled", "completed", "cancelled"];
+const ALLOWED_STATUSES = [
+  "scheduled",
+  "pending",
+  "confirmed",
+  "reschedule_requested",
+  "completed",
+  "cancelled",
+];
 const STAFF_ROLES = ["admin", "manager", "staff"];
 
 const APPOINTMENT_INCLUDE = [

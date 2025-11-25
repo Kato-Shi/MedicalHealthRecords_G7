@@ -45,9 +45,16 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("scheduled", "completed", "cancelled"),
+        type: DataTypes.ENUM(
+          "scheduled",
+          "pending",
+          "confirmed",
+          "reschedule_requested",
+          "completed",
+          "cancelled",
+        ),
         allowNull: false,
-        defaultValue: "scheduled",
+        defaultValue: "confirmed",
       },
       reason: {
         type: DataTypes.TEXT,

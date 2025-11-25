@@ -13,8 +13,8 @@ const { Op } = require("sequelize");
 */
 const getDashboard = async (req, res) => {
  try {
-   // Count all users in the system
-   const totalUsers = await User.count();
+  // Count all users in the system
+  const totalUsers = await User.count();
 
    // Aggregate counts per role to understand capacity mix
    const roleBreakdownRaw = await User.findAll({
@@ -31,33 +31,58 @@ const getDashboard = async (req, res) => {
      return acc;
    }, {});
 
-   const totalPatients = await Patient.count();
-   const scheduledAppointments = await Appointment.count({
-     where: {
-       status: "scheduled",
-       appointmentDate: {
-         [Op.gte]: new Date(),
-       },
-     },
-   });
+  const totalPatients = await Patient.count();
 
-   const recordsDocumented = await MedicalRecord.count();
+  // Appointment insights: overall volume plus per-status breakdown
+  const appointmentCounts = await Appointment.findAll({
+    attributes: [
+      "status",
+      [sequelize.fn("COUNT", sequelize.col("status")), "count"],
+    ],
+    group: ["status"],
+    raw: true,
+  });
+
+  const appointmentStatusBreakdown = appointmentCounts.reduce((acc, item) => {
+    acc[item.status] = parseInt(item.count, 10);
+    return acc;
+  }, {});
+
+  const totalAppointments = appointmentCounts.reduce(
+    (running, item) => running + parseInt(item.count, 10),
+    0,
+  );
+
+  const scheduledAppointments = await Appointment.count({
+    where: {
+      status: {
+        [Op.in]: ["scheduled", "confirmed", "pending", "reschedule_requested"],
+      },
+      appointmentDate: {
+        [Op.gte]: new Date(),
+      },
+    },
+  });
+
+  const recordsDocumented = await MedicalRecord.count();
 
    // Send response with user statistics
    res.json({
      success: true,
      message: "Dashboard data retrieved successfully",
      data: {
-       statistics: {
-         totalUsers,
-         roleBreakdown,
-         totalPatients,
-         scheduledAppointments,
-         recordsDocumented,
-       },
-     },
-   });
- } catch (error) {
+      statistics: {
+        totalUsers,
+        roleBreakdown,
+        totalPatients,
+        totalAppointments,
+        appointmentStatusBreakdown,
+        scheduledAppointments,
+        recordsDocumented,
+      },
+    },
+  });
+} catch (error) {
    // Log error and send internal server error response
    console.error("Dashboard error:", error);
    res.status(500).json({

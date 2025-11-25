@@ -26,6 +26,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const medicalRecordRoutes = require("./routes/medicalRecordRoutes");
+const staffRoutes = require("./routes/staffRoutes");
 
 // Import database models (sequelize models are initialized here)
 const db = require("./models");
@@ -68,6 +69,9 @@ app.use("/api/appointments", appointmentRoutes);
 
 // Clinical documentation endpoints
 app.use("/api/medical-records", medicalRecordRoutes);
+
+// Staff workspace (doctor management, assignments)
+app.use("/api/staff", staffRoutes);
 
 // Health check endpoint
 // Used to verify if the server is running and reachable
