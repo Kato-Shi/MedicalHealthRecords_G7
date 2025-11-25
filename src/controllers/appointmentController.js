@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { Appointment, Patient, User } = require("../models");
 
 const ALLOWED_STATUSES = [
@@ -9,6 +10,7 @@ const ALLOWED_STATUSES = [
   "cancelled",
 ];
 const STAFF_ROLES = ["admin", "manager", "staff"];
+const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
 const APPOINTMENT_INCLUDE = [
   {
@@ -58,6 +60,53 @@ const resolvePatientForUser = async (user) => {
   }
 
   return Patient.findOne({ where: { userId: user.id } });
+};
+
+const ensureSchedulingWindow = async ({
+  appointmentDate,
+  patientId,
+  doctorId,
+  excludeAppointmentId,
+}) => {
+  const requestedDate = new Date(appointmentDate);
+  if (Number.isNaN(requestedDate.getTime())) {
+    throw new Error("INVALID_DATE");
+  }
+
+  const now = new Date();
+  const isSameCalendarDay = requestedDate.toDateString() === now.toDateString();
+  if (isSameCalendarDay) {
+    throw new Error("SAME_DAY_NOT_ALLOWED");
+  }
+
+  const startOfDay = new Date(requestedDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
+
+  const conflicts = await Appointment.findAll({
+    where: {
+      appointmentDate: {
+        [Op.between]: [startOfDay, endOfDay],
+      },
+      id: excludeAppointmentId
+        ? {
+            [Op.ne]: excludeAppointmentId,
+          }
+        : { [Op.not]: null },
+      [Op.or]: [{ doctorId }, { patientId }],
+    },
+  });
+
+  for (const conflict of conflicts) {
+    const diff = Math.abs(
+      new Date(conflict.appointmentDate).getTime() - requestedDate.getTime()
+    );
+
+    if (diff < SIX_HOURS_MS) {
+      throw new Error("WINDOW_TOO_CLOSE");
+    }
+  }
 };
 
 const createAppointment = async (req, res) => {
@@ -151,6 +200,37 @@ const createAppointment = async (req, res) => {
         success: false,
         message: "Invalid appointment status",
       });
+    }
+
+    try {
+      await ensureSchedulingWindow({
+        appointmentDate,
+        patientId: resolvedPatientId,
+        doctorId: resolvedDoctorId,
+      });
+    } catch (error) {
+      if (error.message === "INVALID_DATE") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid appointment date",
+        });
+      }
+
+      if (error.message === "SAME_DAY_NOT_ALLOWED") {
+        return res.status(400).json({
+          success: false,
+          message: "Same-day appointments are not allowed",
+        });
+      }
+
+      if (error.message === "WINDOW_TOO_CLOSE") {
+        return res.status(400).json({
+          success: false,
+          message: "Appointments must be at least 6 hours apart for the same day",
+        });
+      }
+
+      throw error;
     }
 
     const appointment = await Appointment.create({
@@ -353,6 +433,40 @@ const updateAppointment = async (req, res) => {
 
       if (!canManageAll && !isDoctor) {
         delete updates.doctorId;
+      }
+    }
+
+    if (updates.appointmentDate) {
+      try {
+        await ensureSchedulingWindow({
+          appointmentDate: updates.appointmentDate,
+          patientId: updates.patientId || appointment.patientId,
+          doctorId: updates.doctorId || appointment.doctorId,
+          excludeAppointmentId: appointment.id,
+        });
+      } catch (error) {
+        if (error.message === "INVALID_DATE") {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid appointment date",
+          });
+        }
+
+        if (error.message === "SAME_DAY_NOT_ALLOWED") {
+          return res.status(400).json({
+            success: false,
+            message: "Same-day appointments are not allowed",
+          });
+        }
+
+        if (error.message === "WINDOW_TOO_CLOSE") {
+          return res.status(400).json({
+            success: false,
+            message: "Appointments must be at least 6 hours apart for the same day",
+          });
+        }
+
+        throw error;
       }
     }
 
